@@ -9,20 +9,19 @@ import urllib
 # 获取get请求响应内容
 def get_response(url):
     COOKIE = 'SINAGLOBAL=2679365301321.8276.1553576292987; un=15208159422; UOR=www.baidu.com,weibo.com,' \
-             'login.sina.com.cn; Ugrow-G0=5c7144e56a57a456abed1d1511ad79e8; ' \
-             'YF-V5-G0=7a7738669dbd9095bf06898e71d6256d; login_sid_t=c0a307bd309c2073b50562b705db9778; ' \
-             'cross_origin_proto=SSL; WBStorage=42212210b087ca50|undefined; wb_view_log=1920*10801; ' \
-             '_s_tentry=login.sina.com.cn; Apache=7453614656305.212.1576508352848; ' \
-             'ULV=1576508352858:2:2:2:7453614656305.212.1576508352848:1576417679644; ' \
+             'login.sina.com.cn; wvr=6; Ugrow-G0=5c7144e56a57a456abed1d1511ad79e8; ' \
+             'YF-V5-G0=b588ba2d01e18f0a91ee89335e0afaeb; _s_tentry=login.sina.com.cn; ' \
+             'Apache=2763084705464.9575.1576593181302; wb_view_log_5683846101=1920*10801; ' \
+             'ULV=1576593181494:3:3:3:2763084705464.9575.1576593181302:1576508352858; ' \
+             'login_sid_t=e4c43d5919120eda49f78dc7a3847b0e; cross_origin_proto=SSL; wb_view_log=1920*10801; ' \
              'WBtopGlobal_register_version=307744aa77dd5677; ' \
-             'SCF=AomUhaoj-mPwbu8pvNzRbles3nTnnWPAocOC7fkH1ElulRwCpzTzwrPSMJCOduuc523TuMFp3b7sLjelh77uGl0.; ' \
-             'SUB=_2A25w8-xWDeRhGeNI41EZ9CjNyz2IHXVTiVqerDV8PUNbmtBeLUTwkW9NSDJvpnhCyI7wXPBT5lDp4p4NhRR3Oeqk; ' \
+             'SCF=AomUhaoj-mPwbu8pvNzRbles3nTnnWPAocOC7fkH1EluiurAsLr7MxnKo6FbjUoAsZX1uw9BIvIGaxk3M4pFf90.; ' \
+             'SUB=_2A25w_JfeDeRhGeNI41EZ9CjNyz2IHXVTi44WrDV8PUNbmtAfLVLckW9NSDJvpmOO9xRHZPQkgLOTpeyTbAkt34XM; ' \
              'SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W56r5woK0fcRiNXOHAbjj0I5JpX5K2hUgL.Fo-c1heRShqpeh22dJLoI05LxK-LB' \
-             '-BLBKBLxKML12zLB-eLxKML1-2L1hBLxKqLBK5LBo.LxK-L12qLBoMcSh-t; SUHB=0WGck08muV32uM; ALF=1577113220; ' \
-             'SSOLoginState=1576508422; wvr=6; wb_view_log_5683846101=1920*10801; ' \
-             'YF-Page-G0=aac25801fada32565f5c5e59c7bd227b|1576508715|1576508428; ' \
-             'webim_unReadCount=%7B%22time%22%3A1576508713778%2C%22dm_pub_total%22%3A0%2C%22chat_group_client%22%3A0' \
-             '%2C%22allcountNum%22%3A7%2C%22msgbox%22%3A0%7D '
+             '-BLBKBLxKML12zLB-eLxKML1-2L1hBLxKqLBK5LBo.LxK-L12qLBoMcSh-t; SUHB=03oF1iG0eoSOrJ; ALF=1577198092; ' \
+             'SSOLoginState=1576593294; YF-Page-G0=7f483edf167a381b771295af62b14a27|1576594465|1576594327; ' \
+             'webim_unReadCount=%7B%22time%22%3A1576594472050%2C%22dm_pub_total%22%3A0%2C%22chat_group_client%22%3A0' \
+             '%2C%22allcountNum%22%3A14%2C%22msgbox%22%3A0%7D '
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
                  'Chrome/74.0.3729.169 Safari/537.36 '
     REFERER = 'https://weibo.com/u/3176010690?refer_flag=1001030103_&is_all=1'
@@ -70,12 +69,27 @@ if __name__ == '__main__':
           "&__rnd=1576508872952 "
     response = get_response(URL)
     result = json.loads(response)
-    # 第一次点击评论条数所显示的评论
-    main_page_comment_result = result["data"]["html"]
-    main_page_comment_html = etree.HTML(main_page_comment_result)
-    print(main_page_comment_html.xpath("//div[@class='list_li_v2']/div[@class='WB_text']/a[last()]/@href"))
-    # info = re.findall(pattern="a", string=main_page_comment_html)
-    # print(info)
-    # html = etree.HTML(response)
-    # result = html.xpath("//div[@class='UG_list_c']/@href")
-    # print(result)
+    print(result)
+    # # 第一次点击评论条数所显示的评论
+    # main_page_comment_result = result["data"]["html"]
+    # main_page_comment_html = etree.HTML(main_page_comment_result)
+    # main_page_comment_html.xpath("//div[@class='WB_text']/text()")
+    # # 用于从评论中找无内鬼的正则
+    # neigui_reg = re.compile("无内鬼")
+    # # 第几个WB_text
+    # comment_index = 0
+    # # 无内鬼评论出现的评论坐标
+    # neigui_index = []
+    # # 遍历找无内鬼
+    # for comment in main_page_comment_html.xpath("//div[@class='WB_text']/text()"):
+    #     comment_index += 1
+    #     if neigui_reg.search(comment):
+    #         neigui_index.append(comment_index)
+    # print(neigui_index)
+    # 评论页面响应结果
+    comment_response = result["data"]["html"]
+    # 将响应变成完整页面
+    comment_html = etree.HTML(comment_response)
+    # 所有评论
+    comment_list = comment_html.xpath("//div[@class='list_ul']/div/@comment_id")
+    print(comment_list)
