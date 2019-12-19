@@ -1,8 +1,8 @@
 import requests
 import json
 import re
-import os
 import urllib
+import time
 from lxml import etree
 
 
@@ -16,10 +16,32 @@ class User:
         # 用户头像
         self.uface = face
 
+    def print_user(self):
+        print("用户信息:用户编号uid={},用户昵称uname={},用户头像uface={}".format(self.uid, self.uname, self.uface))
+
+
+# 动态
+class News:
+    def __init__(self, user='无', id=0, date="", msg=""):
+        # 动态id
+        self.nid = id
+        # 动态发送用户
+        self.nuser = user
+        # 动态发布日期
+        self.ndate = date
+        # 动态文字内容
+        self.nmsg = msg
+
+    def print_news(self):
+        self.nuser.print_user()
+        print("动态信息:动态编号nid={},动态发布日期ndate={},动态文字内容nmsg={}".format(self.nid, self.ndate, self.nmsg))
+
 
 # 评论
 class Comment:
-    def __init__(self, user, date, msg='无', like=0, reply=0):
+    def __init__(self, cid=0, user='无', date='无', msg='无', like=0, reply=0):
+        # 评论id
+        self.cid = cid
         # 评论用户
         self.user = user
         # 评论内容
@@ -31,22 +53,25 @@ class Comment:
         # 回复数
         self.reply = reply
 
+    def print_comment(self):
+        self.user.print_user()
+        print("评论信息:评论编号cid={},评论内容msg={},评论日期date={},点赞数like={},回复数reply={}".format(self.cid, self.msg, self.date,
+                                                                                     self.like, self.reply))
+
 
 # 获取get请求响应内容
 def get_response(url):
-    COOKIE = 'SINAGLOBAL=4311943425583.0225.1568427385347; un=15208159422; wvr=6; SUBP=0033WrSXqPxfM72' \
-             '5Ws9jqgMF55529P9D9W56r5woK0fcRiNXOHAbjj0I5JpX5KMhUgL.Fo-c1heRShqpeh22dJLoI05LxK-LB-BLBKBLx' \
-             'KML12zLB-eLxKML1-2L1hBLxKqLBK5LBo.LxK-L12qLBoMcSh-t; ALF=1608168309; SCF=ArCtoPVcYR-3GBiAD' \
-             'XGTzfgnmjFtZb1s55ahEYJzpz8xUfKnYFeQFsTHcyovb650POoKHt9a1myR7jf0sSaQqLw.; SUHB=0ebtJ1LQdOI_' \
-             '9H; UOR=www.takefoto.cn,widget.weibo.com,login.sina.com.cn; wb_view_log_5683846101=1920*108' \
-             '01; Ugrow-G0=5c7144e56a57a456abed1d1511ad79e8; SUB=_2A25w_YNcDeRhGeNI41EZ9CjNyz2IHXVTivOUrD' \
-             'V8PUNbn9AKLUPykW9NSDJvpoANzWTfxYiAl42d8pBBLLE0Zl6x; YF-V5-G0=e8fcb05084037bcfa915f5897007cb' \
-             '4d; _s_tentry=login.sina.com.cn; Apache=6977668431281.743.1576661779704; ULV=1576661779751:' \
-             '6:5:4:6977668431281.743.1576661779704:1576632316030; YF-Page-G0=20a0c65c6e2ee949c1f78305a122' \
-             '073b|1576661812|1576661779; TC-V5-G0=eb26629f4af10d42f0485dca5a8e5e20; webim_unReadCount=%7B' \
-             '%22time%22%3A1576661979008%2C%22dm_pub_total%22%3A0%2C%22chat_group_client%22%3A0%2C%22allco' \
-             'untNum%22%3A18%2C%22msgbox%22%3A0%7D; TC-Page-G0=45685168db6903150ce64a1b7437dbbb|1576661989|' \
-             '1576661989'
+    COOKIE = 'SINAGLOBAL=4311943425583.0225.1568427385347; un=15208159422; wvr=6; SUBP=0033WrSXqPxfM' \
+             '725Ws9jqgMF55529P9D9W56r5woK0fcRiNXOHAbjj0I5JpX5KMhUgL.Fo-c1heRShqpeh22dJLoI05LxK-LB-BL' \
+             'BKBLxKML12zLB-eLxKML1-2L1hBLxKqLBK5LBo.LxK-L12qLBoMcSh-t; ALF=1608168309; SCF=ArCtoPVcYR' \
+             '-3GBiADXGTzfgnmjFtZb1s55ahEYJzpz8xUfKnYFeQFsTHcyovb650POoKHt9a1myR7jf0sSaQqLw.; SUHB=0ebt' \
+             'J1LQdOI_9H; UOR=www.takefoto.cn,widget.weibo.com,login.sina.com.cn; SUB=_2A25w_r0pDeRhGeN' \
+             'I41EZ9CjNyz2IHXVTjanhrDV8PUNbn9AKLXLikW9NSDJvplkb1DOlfxwpDKlofnRr6hSAuQxV; Ugrow-G0=5c7144e5' \
+             '6a57a456abed1d1511ad79e8; TC-V5-G0=62b98c0fc3e291bc0c7511933c1b13ad; _s_tentry=-; Apache=9943280' \
+             '52059.3501.1576718545532; ULV=1576718545590:7:6:5:994328052059.3501.1576718545532:1576661779751;' \
+             ' wb_view_log_5683846101=1920*10801; TC-Page-G0=51e9db4bd1cd84f5fb5f9b32772c2750|1576718597|157671' \
+             '8545; webim_unReadCount=%7B%22time%22%3A1576718685054%2C%22dm_pub_total%22%3A0%2C%22chat_group_cl' \
+             'ient%22%3A0%2C%22allcountNum%22%3A20%2C%22msgbox%22%3A0%7D'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
                  'Chrome/74.0.3729.169 Safari/537.36 '
     REFERER = 'https://weibo.com/u/3176010690?refer_flag=1001030103_&is_all=1'
@@ -95,13 +120,39 @@ def printl(str):
 
 # 获取带带大师兄主页所有的动态id
 # response:主页响应
-def get_news_id(page_rsp):
+def get_news_info(page_rsp):
     # 微博动态
     news_reg = re.search(r'<script>FM.view.*Pl_Official_MyProfileFeed__21.*html\":\"(.*)\"', page_rsp, re.M | re.I)
     # 获取所有微博动态html页面
     news_html_str = news_reg.group(1).replace("\\", "")
     news_html = etree.HTML(news_html_str)
-    return news_html.xpath("//div[@class='WB_from S_txt2']/a/@name")
+    # 用户id
+    uid = re.search('id=(.*)&type', str(news_html.xpath("(//div[@class='WB_info'])[1]/a[1]/@usercard")[0])).group(1)
+    # 用户name
+    uname = news_html.xpath("(//div[@class='WB_info'])[1]/a[1]/text()")[0]
+    # 用户头像
+    uface = news_html.xpath("(//div[@class='WB_face W_fl'])[1]/div[@class='face']/a[1]/img/@src")[0]
+    # news_html.xpath("//div[@class='WB_from S_txt2']/a/@name")
+    user = User(uid, uname, uface)
+    # 动态数组
+    news = []
+    # 动态个数
+    news_num = len(news_html.xpath("//div[@action-type='feed_list_item']"))
+    for i in range(1, news_num + 1):
+        # 每一个动态的html
+        index = str(i + 1)
+        each_news = news_html.xpath(
+            "(//div[@class='WB_feed WB_feed_v3 WB_feed_v4']/div['WB_cardwrap WB_feed_type S_bg2 WB_feed_like '])[" + index + "]")[
+            0]
+        # 获取动态id
+        nid = each_news.xpath(".//@mid")[0]
+        # 获取动态内容
+        nmsg = str(' '.join(each_news.xpath(".//div[@class='WB_text W_f14']/text()"))).replace(" ", "").replace("n", "")
+        # 获取发布日期
+        ndate = each_news.xpath(".//div[@class='WB_from S_txt2']/a[1]/@title")[0]
+        news_info = News(user, nid, ndate, nmsg)
+        news.append(news_info)
+    return news
 
 
 # 获取某个动态的所有评论html节点
@@ -129,9 +180,9 @@ def get_comment_info(comments_html, comment_id):
     uid = re.sub(r'\D', '',
                  str(comments_html.xpath(prefix + "/div[@class='list_con']/div[@class='WB_text']/a[1]/@usercard")))
     uname = comments_html.xpath(prefix + "/div[@class='list_con']/div[@class='WB_text']/a[1]/text()")[0]
-    uface = comments_html.xpath(prefix + "/div[@class='WB_face W_fl']/a[1]/img/@src")[0]
+    uface = comments_html.xpath(prefix + "/div[@class='WB_face W_fl']/a[1]/img/@src")
     date = comments_html.xpath(
-        prefix + "/div[@class='list_con']/div[@class='WB_func clearfix']/div[@class='WB_from S_txt2']/text()")
+        prefix + "/div[@class='list_con']/div[@class='WB_func clearfix']/div[@class='WB_from S_txt2']/text()")[0]
     msg = comments_html.xpath(prefix + "/div[@class='list_con']/div[@class='WB_text']/text()")[1]
     like = comments_html.xpath(
         prefix + "/div[@class='list_con']/div[@class='WB_func clearfix']/div[@class='WB_handle W_fr']/ul[@class='clearfix']/li[last()]/span/a/span/em[last()]/text()")[
@@ -141,78 +192,113 @@ def get_comment_info(comments_html, comment_id):
     # 封装
     user = User(uid, uname, uface)
     # 最后封装为Comment类并返回
-    comment = Comment(user, date, msg, like, reply)
+    comment = Comment(comment_id, user, date, msg, like, reply)
     return comment
 
 
 # 通过动态id和评论id查询对应评论的回复
-# 图片从此处获取
-def get_comment_reply(news_id, comment_id):
-    reply_url = 'https://weibo.com/aj/v6/comment/big?ajwvr=6&more_comment=big&root_comment_id=' + comment_id + '&is_child_comment=ture&id=' + news_id + '&from=singleWeiBo&__rnd=1576676691568 '
+# 回复中的图片评论url从此处获取
+# page-页数
+# news_id-动态id
+# comment_id-评论id
+def get_comment_reply(page, news_id, comment_id):
+    # reply_url = 'https://weibo.com/aj/v6/comment/big?ajwvr=6&more_comment=big&root_comment_id=' + comment_id + '&is_child_comment=ture&id=' + news_id + '&from=singleWeiBo&__rnd=1576676691568 '
+    reply_url = 'https://weibo.com/aj/v6/comment/big?ajwvr=6&more_comment=big&child_comment_max_id=&child_comment_max_id_type=0&' \
+                'child_comment_ext_param=&child_comment_page={}&is_child_comment=true&' \
+                'root_comment_id={}&child_comment_id=&last_child_comment_id=&' \
+                'id={}&from=singleWeiBo&__rnd=1576733854666'.format(page, comment_id, news_id)
     reply_rsp = get_response(reply_url)
     # 转json
     reply_json = json.loads(reply_rsp)['data']['html']
     reply_html = etree.HTML(reply_json)
-    reply_msg = reply_html.xpath("//div[@class='WB_text']/a/@alt")
-    return reply_msg
+    # 回复中图片的action_data
+    reply_pic_action_data = reply_html.xpath("//div[@class='list_con']/div[@class='WB_text']/a/@action-data")
+    # 取object_id正则表达式
+    pid_reg = re.compile('object_id=(.*)&pid')
+    # 存图片地址
+    pic = []
+    # 遍历并用正则取出图片的object_id
+    for action_data in reply_pic_action_data:
+        # 解析object_id
+        object_id = pid_reg.search(action_data).group(1)
+        pic.append(get_pic_src(object_id))
+    return pic
+
+
+# 通过图片object_id发送请求获取图片地址
+# 不直接用pid组装图片地址的原因是图片有些是git图,为了找到后缀
+def get_pic_src(object_id):
+    # 图片请求地址
+    pic_req_url = 'https://photo.weibo.com/h5/comment/compic_id/' + object_id
+    pic_req = get_response(pic_req_url)
+    pic_html = etree.HTML(pic_req)
+    pic_src = pic_html.xpath("//img/@src")[0]
+    return pic_src
 
 
 if __name__ == '__main__':
     # 带带大师兄的主页
     URL = "https://weibo.com/u/3176010690?is_all=1"
     response = get_response(URL)
-    news_id = get_news_id(response)
-    printl("主页所有动态id:")
-    print(news_id)
-    print('-----------')
-    # 获取所有评论节点
-    comment_node = get_comments_node(news_id[1])
-    printl("动态id为" + news_id[1])
-    printl("的所有评论节点:")
-    print(comment_node)
-    # 获取所有评论id数组
-    comments_id = get_comments_id(comment_node)
-    print('-----------')
-    printl("动态id为" + news_id[1])
-    printl("的所有评论id数组:")
-    print(comments_id)
-    print('-----------')
-    for id in comments_id:
-        # 通过comment_id获取某个评论信息
-        comment_info = get_comment_info(comment_node, id)
-        printl("动态id为" + news_id[1])
-        printl(",评论id为")
-        printl(id)
-        printl("的评论信息为:")
-        print(comment_info.msg)
-    printl("动态id为4450865186446461")
-    print(",评论id为4450865274203845的回复为")
-    print(get_comment_reply('4450865186446461', '4450865274203845'))
-    # pic = get_response('http://t.cn/AiDeXfdu')
-    # printl(pic)
-    urllib.request.urlretrieve('https://wx1.sinaimg.cn/bmiddle/0063M2h7ly1ga0w3d7ueaj30u01sz107.jpg', "{}{}.jpg".format('F:\\doPython\\weibo\\', 'a'))
-    # result = json.loads(response)
-    # print(result)
-    # # 第一次点击评论条数所显示的评论
-    # main_page_comment_result = result["data"]["html"]
-    # main_page_comment_html = etree.HTML(main_page_comment_result)
-    # main_page_comment_html.xpath("//div[@class='WB_text']/text()")
-    # # 用于从评论中找无内鬼的正则
-    # neigui_reg = re.compile("无内鬼")
-    # # 第几个WB_text
-    # comment_index = 0
-    # # 无内鬼评论出现的评论坐标
-    # neigui_index = []
-    # # 遍历找无内鬼
-    # for comment in main_page_comment_html.xpath("//div[@class='WB_text']/text()"):
-    #     comment_index += 1
-    #     if neigui_reg.search(comment):
-    #         neigui_index.append(comment_index)
-    # print(neigui_index)
-    # # 评论页面响应结果
-    # comment_response = result["data"]["html"]
-    # # 将响应变成完整页面
-    # comment_html = etree.HTML(comment_response)
-    # # 所有评论
-    # comment_list = comment_html.xpath("//div[@class='list_ul']/div/@comment_id")
-    # print(comment_list)
+    news_list = get_news_info(response)
+    print("主页第一页发布的动态(取最新发布的动态):")
+    # 取最新动态
+    for k in range(3, len(news_list)):
+        news_index = k
+        first_news = news_list[news_index]
+        first_news.print_news()
+        # 获取动态id
+        news_id = first_news.nid
+        print('-----------')
+        # 获取所有评论节点
+        comment_node = get_comments_node(news_id)
+        # 获取所有评论id数组
+        comments_id = get_comments_id(comment_node)
+        # 无内鬼的评论
+        comment_info = Comment()
+        # 找到无内鬼的评论
+        for id in comments_id:
+            # 通过comment_id获取某个评论信息
+            comment_info = get_comment_info(comment_node, id)
+            # 找到第一个无内鬼就停止
+            if re.search('无内鬼', comment_info.msg):
+                break
+        # 打印无内鬼评论的基本信息
+        comment_info.print_comment()
+        # 根据回复数reply得出大概多少页数(不准确)  page=reply//15+1
+        # page = int(comment_info.reply) // 15 + 1
+        page = 15
+        # 遍历每一页
+        print("一共{}页".format(page))
+        # 获取开始时间戳,单位ms
+        start = int(round(time.time() * 1000))
+        # 所有图片总数
+        count = 0
+        for i in range(1, page):
+            # 获取每一页的回复中的图片地址
+            printl("第{}页:".format(i))
+            pic_urls = get_comment_reply(i, news_id, comment_info.cid)
+            print(pic_urls)
+            # 获取图片pid正则
+            pid_reg = re.compile('bmiddle\/(.*)\.')
+            # 图片个数
+            pic_num = 0
+            # 获取当页开始时间戳,单位ms
+            page_start = int(round(time.time() * 1000))
+            # 批量下载图片
+            for pic_url in pic_urls:
+                pid = re.search(pid_reg, pic_url).group(1)
+                suffix = pic_url.split('.')[-1]
+                print("开始下载pid={}的图片,图片名称={}.{}".format(pid, pid, suffix))
+                # 下载到F:\\doPython\\weibo\\目录下
+                # 获取图片pid作为图片名称
+                # 获取文件后缀
+                urllib.request.urlretrieve(pic_url, "{}{}.{}".format('F:\\doPython\\weibo\\', pid, suffix))
+                pic_num += 1
+                count += 1
+            # 获取结束时间戳
+            page_end = int(round(time.time() * 1000))
+            print("第{}页图片下载完成,一共{}张,耗时{}ms".format(i, pic_num, page_end - page_start))
+        # 获取结束时间戳,单位ms
+        end = int(round(time.time() * 1000))
+        print("{}页图片下载完成,一共{}张,耗时{}ms".format(page, count, end - start))
