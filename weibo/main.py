@@ -3,6 +3,7 @@ import json
 import re
 import urllib
 import time
+import schedule
 from lxml import etree
 
 
@@ -61,17 +62,14 @@ class Comment:
 
 # 获取get请求响应内容
 def get_response(url):
-    COOKIE = 'SINAGLOBAL=4311943425583.0225.1568427385347; un=15208159422; wvr=6; SUBP=0033WrSXqPxfM' \
-             '725Ws9jqgMF55529P9D9W56r5woK0fcRiNXOHAbjj0I5JpX5KMhUgL.Fo-c1heRShqpeh22dJLoI05LxK-LB-BL' \
-             'BKBLxKML12zLB-eLxKML1-2L1hBLxKqLBK5LBo.LxK-L12qLBoMcSh-t; ALF=1608168309; SCF=ArCtoPVcYR' \
-             '-3GBiADXGTzfgnmjFtZb1s55ahEYJzpz8xUfKnYFeQFsTHcyovb650POoKHt9a1myR7jf0sSaQqLw.; SUHB=0ebt' \
-             'J1LQdOI_9H; UOR=www.takefoto.cn,widget.weibo.com,login.sina.com.cn; SUB=_2A25w_r0pDeRhGeN' \
-             'I41EZ9CjNyz2IHXVTjanhrDV8PUNbn9AKLXLikW9NSDJvplkb1DOlfxwpDKlofnRr6hSAuQxV; Ugrow-G0=5c7144e5' \
-             '6a57a456abed1d1511ad79e8; TC-V5-G0=62b98c0fc3e291bc0c7511933c1b13ad; _s_tentry=-; Apache=9943280' \
-             '52059.3501.1576718545532; ULV=1576718545590:7:6:5:994328052059.3501.1576718545532:1576661779751;' \
-             ' wb_view_log_5683846101=1920*10801; TC-Page-G0=51e9db4bd1cd84f5fb5f9b32772c2750|1576718597|157671' \
-             '8545; webim_unReadCount=%7B%22time%22%3A1576718685054%2C%22dm_pub_total%22%3A0%2C%22chat_group_cl' \
-             'ient%22%3A0%2C%22allcountNum%22%3A20%2C%22msgbox%22%3A0%7D'
+    COOKIE = 'SINAGLOBAL=2679365301321.8276.1553576292987; un=15208159422; UOR=www.baidu.com,weibo.com,' \
+             'login.sina.com.cn; wvr=6; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W56r5woK0fcRiNXOHAbjj0I5JpX5KMhUgL.Fo' \
+             '-c1heRShqpeh22dJLoI05LxK-LB-BLBKBLxKML12zLB-eLxKML1-2L1hBLxKqLBK5LBo.LxK-L12qLBoMcSh-t; ' \
+             'ULV=1576904827459:5:5:5:4282834670867.1284.1576904827438:1576676474862; ' \
+             'Ugrow-G0=140ad66ad7317901fc818d7fd7743564; ALF=1608530350; SSOLoginState=1576994352; ' \
+             'SCF=AomUhaoj-mPwbu8pvNzRbles3nTnnWPAocOC7fkH1EluwZqvfpq4RNbzwfG4bvvpEHs-nv_bstW-lXFAxwKeSm8.; ' \
+             'SUB=_2A25w-3ZgDeRhGeNI41EZ9CjNyz2IHXVQceCorDV8PUNbmtAfLWH_kW9NSDJvplX7rHRJzjxa0FLbCWVR_IMRqbnm; ' \
+             'SUHB=0oUoUlkh8bS3cO '
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
                  'Chrome/74.0.3729.169 Safari/537.36 '
     REFERER = 'https://weibo.com/u/3176010690?refer_flag=1001030103_&is_all=1'
@@ -236,14 +234,15 @@ def get_pic_src(object_id):
     return pic_src
 
 
-if __name__ == '__main__':
+# 定时脚本
+def job():
     # 带带大师兄的主页
     URL = "https://weibo.com/u/3176010690?is_all=1"
     response = get_response(URL)
     news_list = get_news_info(response)
     print("主页第一页发布的动态(取最新发布的动态):")
     # 取最新动态
-    for k in range(3, len(news_list)):
+    for k in range(1, 2):
         news_index = k
         first_news = news_list[news_index]
         first_news.print_news()
@@ -267,7 +266,7 @@ if __name__ == '__main__':
         comment_info.print_comment()
         # 根据回复数reply得出大概多少页数(不准确)  page=reply//15+1
         # page = int(comment_info.reply) // 15 + 1
-        page = 15
+        page = 20
         # 遍历每一页
         print("一共{}页".format(page))
         # 获取开始时间戳,单位ms
@@ -302,3 +301,11 @@ if __name__ == '__main__':
         # 获取结束时间戳,单位ms
         end = int(round(time.time() * 1000))
         print("{}页图片下载完成,一共{}张,耗时{}ms".format(page, count, end - start))
+
+
+if __name__ == '__main__':
+    # 每天18:00执行
+    schedule.every().day.at("18:00").do(job)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
